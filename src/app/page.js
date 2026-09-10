@@ -9,7 +9,9 @@ import ScrollReveal from "@/components/ScrollReveal";
 
 async function getFeaturedVehicles() {
   try {
-    const res = await fetch("http://localhost:3000/api/vehicles", {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL 
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    const res = await fetch(`${baseUrl}/api/vehicles`, {
       cache: "no-store",
     });
     if (!res.ok) return [];
