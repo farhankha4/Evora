@@ -62,11 +62,21 @@ app = FastAPI(
 # with this backend without browser security blocks.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/")
+def read_root():
+    return {
+        "status": "online",
+        "service": "Evora EV Rental API",
+        "docs": "/docs",
+        "health": "/health"
+    }
 
 # ─── 4. Supabase Client Lifecycle Management ──────────────────────────────────
 # The Supabase client is initialized once when the server boots up.
