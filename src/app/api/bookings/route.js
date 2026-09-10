@@ -1,21 +1,13 @@
-// ─── Feature 4: Next.js API Proxy — /api/bookings ───────────────────────────
-//
-// Proxies reservation requests from the frontend to the FastAPI backend:
-// POST /api/bookings -> POST http://localhost:8000/bookings
-//
-// Forwards the logged-in user's Bearer token in the Authorization header.
-//
-// ────────────────────────────────────────────────────────────────────────────
+// ─── Next.js API Proxy — /api/bookings ────────────────────────────────────────
+
+import { getBackendUrl } from "@/lib/config";
 
 export async function POST(request) {
-  const apiUrl = process.env.FASTAPI_URL ?? "http://localhost:8000";
+  const apiUrl = getBackendUrl();
   const authHeader = request.headers.get("authorization");
 
   if (!authHeader) {
-    return Response.json(
-      { error: "Authentication required to create a booking." },
-      { status: 401 }
-    );
+    return Response.json({ error: "Unauthorized." }, { status: 401 });
   }
 
   try {
@@ -25,7 +17,7 @@ export async function POST(request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": authHeader,
+        Authorization: authHeader,
       },
       body: JSON.stringify(body),
       cache: "no-store",
@@ -35,16 +27,15 @@ export async function POST(request) {
 
     if (!res.ok) {
       return Response.json(
-        { error: data.detail || "Booking creation failed." },
+        { error: data.detail || "Booking failed." },
         { status: res.status }
       );
     }
 
     return Response.json(data);
-
-  } catch {
+  } catch (err) {
     return Response.json(
-      { error: "Cannot reach booking service on port 8000." },
+      { error: `Cannot reach backend server at ${apiUrl}. ${err.message}` },
       { status: 503 }
     );
   }

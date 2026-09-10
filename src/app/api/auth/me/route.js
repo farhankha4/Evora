@@ -1,27 +1,20 @@
-// ─── Feature 3: Next.js API Proxy — /api/auth/me ────────────────────────────
-//
-// Forwards the Bearer Authorization header to FastAPI GET /auth/me
-// to verify the current session and retrieve the active user profile.
-//
-// ────────────────────────────────────────────────────────────────────────────
+// ─── Next.js API Proxy — /api/auth/me ─────────────────────────────────────────
+
+import { getBackendUrl } from "@/lib/config";
 
 export async function GET(request) {
-  const apiUrl = process.env.FASTAPI_URL ?? "http://localhost:8000";
+  const apiUrl = getBackendUrl();
   const authHeader = request.headers.get("authorization");
 
   if (!authHeader) {
-    return Response.json(
-      { error: "Authorization header is missing." },
-      { status: 401 }
-    );
+    return Response.json({ error: "Missing authorization token." }, { status: 401 });
   }
 
   try {
     const res = await fetch(`${apiUrl}/auth/me`, {
       method: "GET",
       headers: {
-        "Authorization": authHeader,
-        "Content-Type": "application/json"
+        Authorization: authHeader,
       },
       cache: "no-store",
     });
@@ -30,16 +23,15 @@ export async function GET(request) {
 
     if (!res.ok) {
       return Response.json(
-        { error: data.detail || "Session is invalid or expired." },
+        { error: data.detail || "Failed to fetch user profile." },
         { status: res.status }
       );
     }
 
     return Response.json(data);
-
-  } catch {
+  } catch (err) {
     return Response.json(
-      { error: "Cannot reach authentication server on port 8000." },
+      { error: `Cannot reach backend server at ${apiUrl}. ${err.message}` },
       { status: 503 }
     );
   }

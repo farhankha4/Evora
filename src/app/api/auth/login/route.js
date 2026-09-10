@@ -1,12 +1,9 @@
-// ─── Feature 3: Next.js API Proxy — /api/auth/login ─────────────────────────
-//
-// Proxies login requests from the Next.js frontend to the FastAPI backend:
-// POST /api/auth/login -> POST http://localhost:8000/auth/login
-//
-// ────────────────────────────────────────────────────────────────────────────
+// ─── Next.js API Proxy — /api/auth/login ──────────────────────────────────────
+
+import { getBackendUrl } from "@/lib/config";
 
 export async function POST(request) {
-  const apiUrl = process.env.FASTAPI_URL ?? "http://localhost:8000";
+  const apiUrl = getBackendUrl();
 
   try {
     const body = await request.json();
@@ -22,16 +19,16 @@ export async function POST(request) {
 
     if (!res.ok) {
       return Response.json(
-        { error: data.detail || "Invalid email or password." },
+        { error: data.detail || "Invalid login credentials." },
         { status: res.status }
       );
     }
 
     return Response.json(data);
 
-  } catch {
+  } catch (err) {
     return Response.json(
-      { error: "Cannot reach authentication server on port 8000." },
+      { error: `Cannot reach backend server at ${apiUrl}. ${err.message}` },
       { status: 503 }
     );
   }
